@@ -7,9 +7,47 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 import { useState } from "react"
+import axios from 'axios';
+import { supabase } from '@/lib/supabaseClient'
+
+
 
 export default function Component() {
-  const [showPassword, setShowPassword] = useState(false)
+  
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      alert("Vui lòng nhập đầy đủ email và mật khẩu.")
+      return
+    }
+    
+      try {
+            const res = await axios.post('/api/auth/login', { email, password })
+            if (res && res.data?.message) {
+              alert(res.data.message)
+              // 👉 Redirect hoặc set trạng thái login ở đây nếu cần
+            }
+          } catch (err: any) {
+            const errorMsg = err.response?.data?.error || "Lỗi không xác định"
+            if (errorMsg.toLowerCase().includes("invalid")) {
+              alert("Sai email hoặc mật khẩu")
+            } else {
+              alert(errorMsg)
+            }
+          } 
+  }
+
+  const handleLoginWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+    })
+
+    if (error) alert("Đăng nhập thất bại!")
+}
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
@@ -40,6 +78,8 @@ export default function Component() {
                     type="email"
                     placeholder="your@email.com"
                     className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-200"
+                    value={email} 
+                    onChange={e => setEmail(e.target.value)}
                   />
                 </div>
               </div>
@@ -52,16 +92,17 @@ export default function Component() {
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
                     id="password"
-                    type={showPassword ? "text" : "password"}
+                    type={password ? "text" : "password"}
                     placeholder="••••••••"
                     className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-200"
+                    value={password} 
+                    onChange={e => setPassword(e.target.value)}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {password ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
@@ -79,7 +120,7 @@ export default function Component() {
               </button>
             </div>
 
-            <Button className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]">
+            <Button onClick={handleLogin} className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]">
               Đăng nhập
             </Button>
 
@@ -95,6 +136,7 @@ export default function Component() {
             <Button
               variant="outline"
               className="w-full h-12 border-gray-200 hover:bg-gray-50 transition-all duration-200"
+              onClick={handleLoginWithGoogle}
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
