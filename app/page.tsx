@@ -17,7 +17,7 @@ export default function Component() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  
+   //Gọi hàm đăng nhập thông qua tài khoản gmail
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -26,13 +26,14 @@ export default function Component() {
     }
     
       try {
-            const res = await axios.post('/api/auth/login', { email, password })
+            const res = await axios.post('api/dangnhap', { email, password })
             if (res && res.data?.message) {
               alert(res.data.message)
-              // 👉 Redirect hoặc set trạng thái login ở đây nếu cần
+              //
             }
           } catch (err: any) {
             const errorMsg = err.response?.data?.error || "Lỗi không xác định"
+            
             if (errorMsg.toLowerCase().includes("invalid")) {
               alert("Sai email hoặc mật khẩu")
             } else {
@@ -40,6 +41,8 @@ export default function Component() {
             }
           } 
   }
+
+  //Gọi hàm đăng nhập thông qua google
 
   const handleLoginWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
